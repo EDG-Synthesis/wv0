@@ -1,0 +1,281 @@
+:root {
+    --gap: 24px;
+    --slider-track-h: 3px;      /* track thickness */
+    --slider-thumb: 15px;       /* knob diameter incl. border */
+    --slider-track: #cfcfcf;    /* line color */
+    --slider-thumb-fill: #333;  /* knob fill (black) */
+    --slider-thumb-border: 1px; /* knob border width */
+    --slider-thumb-border-color: #bfbfbf; /* knob border color */
+     }
+* { box-sizing: border-box; }
+body {
+  margin: 0; background:#f6f6f6; color:#333;
+  font-family: "Poppins", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.45;
+}
+.wrap {
+  max-width: 1200px; 
+  margin: 40px auto;
+  padding: 0 20px;
+  }
+h2 { 
+  text-align:center;
+  font-weight:600; 
+  margin:0 0 20px;
+}
+
+.see-it {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: var(--gap);
+  align-items: start;
+}
+
+/* Viewer container with gradient like your mock */
+.viewer {
+  position: relative;
+  aspect-ratio: 16/10;
+  border-radius: 2px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #173b53 0%, #474747 100%);
+  box-shadow: 0 8px 24px rgba(0,0,0,.12);
+}
+/* Canvas fills .viewer */
+.viewer canvas { 
+    display:block; 
+    width:100%; 
+    height:100%;
+ }
+/* --- Viewer HUD (top-left) --- */
+.viewer-hud {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: flex;
+  gap: 8px;
+  z-index: 10;
+}
+
+.hud-btn {
+  padding: 6px 10px;
+  font: 500 12px/1.2 "Poppins", system-ui, sans-serif;
+  color: #333;
+  background: rgba(255,255,255,0.6);
+  border: 1px solid rgba(0,0,0,0.15);
+  border-radius: 8px;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+}
+.hud-btn:hover { background: #fff; }
+.hud-btn:focus-visible { outline: 2px solid #333; outline-offset: 2px; }
+
+
+.divider {
+  margin: 14px 0 16px;
+  border: 0;
+  border-top: 1px solid #e5e5e5;
+}
+
+
+.control-set { border: 0; margin: 0; padding: 0; }
+.sr-only {
+  position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+/* Optional: ensure inert content can’t be interacted with in older UAs */
+[inert] { pointer-events: none; }
+
+.panel {
+  background: #fff;
+  border-radius: 2px;
+  padding: 24px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.08);
+  position: sticky;
+  top: 16px;
+}
+.panel label { 
+    display:block; 
+    margin: 14px 0 6px; 
+    color:#666; 
+    font-weight:600; 
+}
+.panel .row { 
+    display:flex; 
+    align-items:center; 
+    gap:10px; 
+    margin-bottom: 24px;
+}
+.panel .row:last-of-type { margin-bottom: 10px; }
+
+
+/* Dropdown only: square, roomy, with custom arrow */
+.panel select {
+  width: 100%;
+  height: 40px;
+  padding: 0 36px 0 12px;          /* space for text + arrow */
+  font: inherit;
+  line-height: 40px;
+  color: #333;
+  background-color: #fff;
+  border: 1px solid #cfcfcf;
+  border-radius: 0; 
+  margin-bottom: 10px;                /* square corners */
+
+  /* remove native arrow */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  /* custom arrow from CDN */
+  background-image: url("https://cdn.jsdelivr.net/npm/feather-icons@4.29.1/dist/icons/chevron-down.svg");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 14px 14px;
+}
+/* Reset and contain the slider so we fully control it */
+.panel input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  width: 100%;
+  height: calc(var(--slider-thumb) + 8px); /* roomy click area */
+  margin: 0;
+  padding: 0;
+  accent-color: initial;  /* neutralize browser's colored fill */
+}
+/* Track: single solid line */
+.panel input[type="range"]::-webkit-slider-runnable-track{
+  height: var(--slider-track-h);
+  background: var(--slider-track);
+  border: 0;
+  border-radius: 0;
+}
+.panel input[type="range"]::-moz-range-track{
+  height: var(--slider-track-h);
+  background: var(--slider-track);
+  border: 0;
+}
+.panel input[type="range"]::-moz-range-progress{
+  height: var(--slider-track-h);
+  background: var(--slider-track); /* same as track to eliminate left-fill */
+}
+/* Thumb: centered on the thicker track, bigger size */
+.panel input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance: none;
+  width: var(--slider-thumb);
+  height: var(--slider-thumb);
+  /* center thumb: (track - thumb)/2 (will be negative) */
+  margin-top: calc((var(--slider-track-h) - var(--slider-thumb)) / 2);
+  border-radius: 50%;
+  background: var(--slider-thumb-fill);
+  border: var(--slider-thumb-border) solid var(--slider-thumb-border-color);
+  box-shadow: none;
+}
+.panel input[type="range"]::-moz-range-thumb{
+  width: var(--slider-thumb);
+  height: var(--slider-thumb);
+  border-radius: 50%;
+  background: var(--slider-thumb-fill);
+  border: var(--slider-thumb-border) solid var(--slider-thumb-border-color);
+}
+.panel input[type="range"]:focus { outline: none; }
+/* Keep slider track a fixed length; reserve ~3 chars for the value */
+.panel .row > input[type="range"] {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;                 /* override earlier width:100% so flex can size it */
+}
+
+.panel .row > span {
+  flex: 0 0 2.5ch;             /* ~3 characters; bump to 4ch if you prefer */
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums; /* stable digit widths */
+}
+
+/* --- Material swatches --- */
+.materials { 
+  margin-bottom: 16px;
+  border: 0;
+  padding: 0;
+}
+.materials-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.materials-head .readout {
+  margin-left: auto;      /* pushes to the far right */
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: #444;
+}
+.swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+  gap: 10px;
+  margin-bottom: 8px;
+}
+/* Button-like radio tiles */
+.swatch {
+  display: inline-block;
+  width: 100%;
+  aspect-ratio: 1/1;
+  border: 1px solid #cfcfcf;
+  border-radius: 0;
+  background: #eee center/cover no-repeat;
+  cursor: pointer;
+  position: relative;
+}
+.swatch[aria-checked="true"] {
+  outline: 2px solid #333;
+  outline-offset: -2px;
+}
+.swatch[aria-checked="true"]::after {
+  content: "";
+  position: absolute;
+  inset: 2px;                    /* distance from edges; tweak 2–4px to taste */
+  border: 1px solid #fff;        /* inner white */
+  box-sizing: border-box;
+  pointer-events: none;
+}
+.swatch:focus-visible {
+  outline: 2px solid #333;
+  outline-offset: -2px;
+}
+/* Optional tiny caption overlay on hover (uses title attr by default) */
+/* .swatch::after { ... } */
+
+/* Readout under the grid */
+.readout {
+  display: block;
+  color: #666;
+  font-variant-numeric: tabular-nums;
+}
+/* Disabled look if you ever need it */
+.swatch[aria-disabled="true"] {
+  opacity: .4;
+  pointer-events: none;
+}
+
+
+
+.buy {
+  margin-top: 16px; 
+  width: 100%;
+  padding: 12px 14px;
+  border: 0; 
+  border-radius: 0px;
+  background: #333; 
+  color: #fff;
+  cursor: pointer; 
+  font-weight:600;
+  font-family: inherit;
+}
+
+@media (max-width: 980px) {
+  .see-it { grid-template-columns: 1fr; }
+  .panel { position: static; }
+}

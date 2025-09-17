@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ProtoViewer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+  <script type="importmap">{
+    "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+  </script>
+  <!-- Three.js app (module) -->
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <div class="wrap">
+    <h2>See It in Action</h2>
+
+    <section class="see-it">
+      <!-- Left: 3D viewer -->
+      <div class="viewer" id="viewer">
+        <div class="viewer-hud">
+          <button id="lightsBtn" class="hud-btn" aria-pressed="false">lights: off</button>
+        </div>
+      </div>
+
+      <!-- Right: UI scaffold (not wired to models yet) -->
+      <aside class="panel">
+
+        <label for="project">Project</label>
+        <select id="project">
+          <option value="private">Private Residence</option>
+          <option value="office">Office Decor</option>
+        </select>
+
+        <hr class="divider" />
+
+        <label for="design">Design</label>
+        <select id="design">
+          <option value="cloud">Cloud</option>
+          <option value="noise">Noise</option>
+          <option value="brush">Brush</option>
+        </select>
+
+        <div id="control-sets">
+          <!-- CLOUD: depth, angle(°), stretch -->
+          <fieldset class="control-set" data-design="cloud">
+            <legend class="sr-only">Cloud options</legend>
+
+            <label for="depthCloud">Depth Factor</label>
+            <div class="row">
+              <input id="depthCloud" type="range" min="1" max="3" step="1" value="3" />
+              <span id="depthCVal">3</span>
+            </div>
+
+            <label for="angleCloud">Angle</label>
+            <div class="row">
+              <input id="angleCloud" type="range" min="0" max="90" step="15" value="45" />
+              <span id="angleCVal">45°</span>
+            </div>
+
+            <label for="stretchCloud">Stretch</label>
+            <div class="row">
+              <input id="stretchCloud" type="range" min="1" max="4" step="1" value="2" />
+              <span id="stretchCVal">2</span>
+            </div>
+          </fieldset>
+
+          <!-- NOISE (shared by both projects): depth, scale -->
+          <fieldset class="control-set" data-design="noise" hidden inert>
+            <legend class="sr-only">Noise options</legend>
+
+            <label for="depthNoise">Depth Factor</label>
+            <div class="row">
+              <input id="depthNoise" type="range" min="1" max="3" step="1" value="1" />
+              <span id="depthNVal">1</span>
+            </div>
+
+            <label for="scaleNoise">Scale</label>
+            <div class="row">
+              <input id="scaleNoise" type="range" min="1" max="5" step="1" value="3" />
+              <span id="scaleNVal">3x</span>
+            </div>
+          </fieldset>
+
+          <!-- BRUSH (Private): density, soften -->
+          <fieldset class="control-set" data-design="brush" hidden inert>
+            <legend class="sr-only">Brush options</legend>
+
+            <label for="densityBrush">Density</label>
+            <div class="row">
+              <input id="densityBrush" type="range" min="1" max="4" step="1" value="2" />
+              <span id="densityBVal">2</span>
+            </div>
+
+            <label for="softenBrush">Soften</label>
+            <div class="row">
+              <input id="softenBrush" type="range" min="1" max="4" step="1" value="2" />
+              <span id="softenBVal">2</span>
+            </div>
+          </fieldset>
+
+          <!-- TOUCH (Office): size, dent -->
+          <fieldset class="control-set" data-design="touch" hidden inert>
+            <legend class="sr-only">Touch options</legend>
+
+            <label for="sizeTouch">Size</label>
+            <div class="row">
+              <input id="sizeTouch" type="range" min="1" max="4" step="1" value="2" />
+              <span id="sizeTVal">2</span>
+            </div>
+
+            <label for="repTouch">Repetition</label>
+            <div class="row">
+              <input id="repTouch" type="range" min="1" max="4" step="1" value="2" />
+              <span id="repTVal">2</span>
+            </div>
+          </fieldset>
+        </div>
+
+        <hr class="divider" />
+
+        <div class="materials-head">
+          <label for="material">Material</label>
+          <output id="matReadout" class="readout" aria-live="polite">—</output>
+        </div>
+        <fieldset class="materials" aria-label="Material">
+          <div id="matSwatches" class="swatches" role="radiogroup"></div>
+          <input type="hidden" id="material" name="material" value="">
+        </fieldset>
+
+        <button class="buy" type="button">Purchase Options ▸</button>
+      </aside>
+    </section>
+  </div>
+
+  
+</body>
+</html>
