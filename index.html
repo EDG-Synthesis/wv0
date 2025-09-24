@@ -28,13 +28,14 @@
         </div>
       </div>
 
-      <!-- Right: UI scaffold (not wired to models yet) -->
+      <!-- Right: UI  -->
       <aside class="panel">
 
         <label for="project">Project</label>
-        <select id="project">
+        <select id="project" hidden inert>
           <option value="private">Private Residence</option>
           <option value="office">Office Decor</option>
+          <option value="lobby" selected>Hotel Lobby</option>
         </select>
 
         <hr class="divider" />
@@ -118,6 +119,23 @@
             <div class="row">
               <input id="repTouch" type="range" min="1" max="4" step="1" value="2" />
               <span id="repTVal">2</span>
+            </div>
+          </fieldset>
+
+          <!-- lobby set noise depth, scale -->
+          <fieldset class="control-set" data-design="lobbyset" hidden inert>
+            <legend class="sr-only">Lobby Options</legend>
+
+            <label for="depthLobby">Depth Factor</label>
+            <div class="row">
+              <input id="depthLobby" type="range" min="1" max="3" step="1" value="1" />
+              <span id="depthLVal">1</span>
+            </div>
+
+            <label for="scaleLobby">Scale</label>
+            <div class="row">
+              <input id="scaleLobby" type="range" min="1" max="5" step="1" value="3" />
+              <span id="scaleLVal">3x</span>
             </div>
           </fieldset>
         </div>

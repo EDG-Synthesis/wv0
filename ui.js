@@ -35,8 +35,31 @@ export const SWATCHES = {
     office: [
       { id: "golden",   name: "Deluxe",   color: "#a89051"}
     ]
+  },
+
+  wall: {
+    any: [
+      {id: "plastic_wh",  name: "Pearl",  color: "#e8e5dc"},
+      {id: "plastic_char",  name: "Charcoal",  color: "#444"},
+    ],
+  },
+  desk: {
+    any: [
+      {id: "plastic_wh",  name: "Pearl",  color: "#e8e5dc"},
+      {id: "plastic_char",  name: "Charcoal",  color: "#444"},
+    ],
+  },
+  ceiling: {
+    any: [
+      {id: "plastic_wh",  name: "Pearl",  color: "#e8e5dc"}
+    ],
+  },
+  surround: {
+    any: [
+      {id: "plastic_wh",  name: "Pearl",  color: "#e8e5dc"}
+    ],
   }
-};
+}
 
 
 export function initUI(ctx, models, assets) {
@@ -62,10 +85,13 @@ export function initUI(ctx, models, assets) {
       }
     });
   }
+  
   const controlSets = document.querySelectorAll(".control-set");
-
   function showSet(rawName){
-    const name = String(rawName || "").toLowerCase();
+    let name = String(rawName || "").toLowerCase();
+    if (name==="wall"||"desk"||"ceiling"||"surround") {
+      name = "lobbyset";
+    };
     controlSets.forEach(set => {
       const match = (set.dataset.design || "").split(/\s+/).includes(name);
       set.hidden = !match;
@@ -85,6 +111,9 @@ export function initUI(ctx, models, assets) {
   // TOUCH sliders
   const sizeTouch    = $("sizeTouch"),    repTouch    = $("repTouch");
   const sizeTVal     = $("sizeTVal"),     repTVal     = $("repTVal");
+  // LOBBY sliders
+  const depthLobby   = $("depthLobby"),   scaleLobby   = $("scaleLobby");
+  const depthLVal    = $("depthLVal"),    scaleLVal    = $("scaleLVal");
 
   // Readout formatters
   const fmt_in  = (v) => `${v}″`;
@@ -318,6 +347,22 @@ export function initUI(ctx, models, assets) {
         size: Number(sizeTouch?.value),
         rep: Number(repTouch?.value)
       };
+      case "wall": return {
+        depth: Number(depthLobby?.value),
+        scale: Number(scaleLobby?.value)
+      };
+      case "desk": return {
+        depth: Number(depthLobby?.value),
+        scale: Number(scaleLobby?.value)
+      };
+      case "ceiling": return {
+        depth: Number(depthLobby?.value),
+        scale: Number(scaleLobby?.value)
+      };
+      case "surround": return {
+        depth: Number(depthLobby?.value),
+        scale: Number(scaleLobby?.value)
+      };
       default: return {};
     }
   }
@@ -327,6 +372,11 @@ export function initUI(ctx, models, assets) {
       case "noise": return (vals.depth|0) + "|" + (vals.scale|0);
       case "brush": return (vals.density|0) + "|" + (vals.soften|0);
       case "touch": return (vals.size|0) + "|" + (vals.rep|0);
+      case "wall":
+      case "desk":
+      case "ceiling":
+      case "surround":
+        return (vals.depth|0) + "|" + (vals.scale|0);
       default: return "";
     }
   }
@@ -402,6 +452,9 @@ export function initUI(ctx, models, assets) {
     if (sizeTouch && sizeTVal)     sizeTVal.textContent    = fmt(sizeTouch.value);
     if (repTouch && repTVal)     repTVal.textContent    = fmt(repTouch.value);
 
+    if (depthLobby && depthLVal)   depthLVal.textContent   = fmt(depthLobby.value);
+    if (scaleLobby && scaleLVal)   scaleLVal.textContent   = fmt_x(scaleLobby.value);
+
     if (updateModel) checkAndUpdateModels();
   }
 
@@ -415,7 +468,8 @@ export function initUI(ctx, models, assets) {
     depthCloud, angleCloud, stretchCloud,
     depthNoise, scaleNoise,
     densityBrush, softenBrush,
-    sizeTouch, repTouch
+    sizeTouch, repTouch,
+    depthLobby, scaleLobby
   ].filter(Boolean);
   sliders.forEach(s => {
     s.addEventListener("input", onSliderChange);   // live readouts / preview

@@ -22,13 +22,17 @@ const ASSETS = {
       { url: "src/slab.gltf",   material: "concrete"  },
       { url: "src/officewalls.gltf",   material: "stucco"  },
       { url: "src/officedesks.gltf",   material: "stucco"  }
+    ],
+    lobby: [
+      {},
     ]
   },
 
   // Controls which Design options appear for each Project
   designsByProject: {
     private: ["cloud", "noise", "brush"],
-    office:  ["noise", "touch"]
+    office:  ["noise", "touch"],
+    lobby: ["wall", "desk", "ceiling", "surround"],
   },
 
   // part mappings - use target:false to exclude from swatch changes
@@ -76,6 +80,20 @@ const ASSETS = {
         "2|1": [{ url: "src/officetouch2-1.gltf",id:"ringlens"  },{url:"src/t_shroud2-x.gltf", material: "stucco", target:false} ],
         "2|2": [{ url: "src/officetouch2-2.gltf",id:"ringlens"  },{url:"src/t_shroud2-x.gltf", material: "stucco", target:false} ],
         "2|3": [{ url: "src/officetouch2-3.gltf",id:"ringlens"  },{url:"src/t_shroud2-x.gltf", material: "stucco", target:false} ]
+      }
+    },
+    lobby: {
+      wall: {
+
+      },
+      desk: {
+
+      },
+      ceiling: {
+
+      },
+      surround: {
+
       }
     },
     "*": {
