@@ -1,0 +1,124 @@
+{
+  "extensionsUsed": [
+    "KHR_materials_transmission",
+    "KHR_materials_clearcoat",
+    "KHR_materials_ior",
+    "KHR_materials_specular",
+    "KHR_materials_emissive_strength",
+    "KHR_texture_transform"
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 24,
+      "type": "VEC3",
+      "max": [
+        18.6147079,
+        -1.6186608E-15,
+        10.6905851
+      ],
+      "min": [
+        -14.7557516,
+        -0.0254,
+        -1.94932592
+      ]
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5125,
+      "count": 36,
+      "type": "SCALAR",
+      "max": [
+        23.0
+      ],
+      "min": [
+        0.0
+      ]
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 24,
+      "type": "VEC3",
+      "max": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "min": [
+        -1.0,
+        -1.0,
+        -1.0
+      ]
+    }
+  ],
+  "asset": {
+    "version": "2.0"
+  },
+  "buffers": [
+    {
+      "uri": "data:application/octet-stream;base64,jxdswakT0LyjDCtBjxdswQtG6aajDCtB7OqUQakT0LyjDCtB7OqUQQtG6aajDCtB7OqUQakT0LyjDCtB7OqUQQtG6aajDCtB7OqUQakT0LyDg/m/7OqUQQtG6aaDg/m/7OqUQakT0LyDg/m/7OqUQQtG6aaDg/m/jxdswakT0LyDg/m/jxdswQtG6aaDg/m/jxdswakT0LyDg/m/jxdswQtG6aaDg/m/jxdswakT0LyjDCtBjxdswQtG6aajDCtBjxdswakT0LyjDCtB7OqUQakT0LyjDCtB7OqUQakT0LyDg/m/jxdswakT0LyDg/m/jxdswQtG6aajDCtB7OqUQQtG6aajDCtB7OqUQQtG6aaDg/m/jxdswQtG6aaDg/m/",
+      "byteLength": 288
+    },
+    {
+      "uri": "data:application/octet-stream;base64,AAAAAAIAAAADAAAAAAAAAAMAAAABAAAABAAAAAYAAAAHAAAABAAAAAcAAAAFAAAACAAAAAoAAAALAAAACAAAAAsAAAAJAAAADAAAAA4AAAAPAAAADAAAAA8AAAANAAAAEQAAABAAAAATAAAAEwAAABIAAAARAAAAFQAAABcAAAAUAAAAFwAAABUAAAAWAAAA",
+      "byteLength": 144
+    },
+    {
+      "uri": "data:application/octet-stream;base64,AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AACAPwAAAAAAAAAAAACAPwAAAAAAAAAAAACAPwAAAAAAAAAAAACAPwAAAAAAAAAAAAAAAAAAAAAAAIC/AAAAAAAAAAAAAIC/AAAAAAAAAAAAAIC/AAAAAAAAAAAAAIC/AACAvwAAAAAAAAAAAACAvwAAAAAAAAAAAACAvwAAAAAAAAAAAACAvwAAAAAAAAAAAAAAAAAAgL8AAAAAAAAAAAAAgL8AAAAAAAAAAAAAgL8AAAAAAAAAAAAAgL8AAAAAAAAAAAAAgD8AAAAAAAAAAAAAgD8AAAAAAAAAAAAAgD8AAAAAAAAAAAAAgD8AAAAA",
+      "byteLength": 288
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 288,
+      "target": 34962
+    },
+    {
+      "buffer": 1,
+      "byteLength": 144,
+      "target": 34963
+    },
+    {
+      "buffer": 2,
+      "byteLength": 288,
+      "target": 34962
+    }
+  ],
+  "meshes": [
+    {
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 2
+          },
+          "indices": 1
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "mesh": 0
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9729
+    }
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "nodes": [
+        0
+      ],
+      "extensions": {}
+    }
+  ],
+  "extensions": {}
+}

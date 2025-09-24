@@ -24,7 +24,11 @@ const ASSETS = {
       { url: "src/officedesks.gltf",   material: "stucco"  }
     ],
     lobby: [
-      {},
+      {url: "src/l_chairmetal.gltf",   material: "ssteel"  },
+      {url: "src/l_rubber.gltf",   material: "rubber"  },
+      {url: "src/l_desk.gltf",   material: "marble"  },
+      {url: "src/l_floor.gltf",   material: "plaster"  },
+      {url: "src/l_wall.gltf",   material: "stucco"  }
     ]
   },
 

@@ -5,6 +5,7 @@ import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass }    from "three/addons/postprocessing/RenderPass.js";
 import { SSAOPass }      from "three/addons/postprocessing/SSAOPass.js";
+import {FlyControls} from "three/addons/controls/FlyControls.js";
 
 export function initViewer(containerId) {
   const container = document.getElementById(containerId);
@@ -71,6 +72,114 @@ export function initViewer(containerId) {
   controls.enableDamping = false;
   controls.target.set(0, 0.6, 0);
   controls.addEventListener("change", renderOnce);
+
+  // --- Camera-anchored look mode (left-drag to yaw/pitch in place) ---
+  let lookMode = false;
+  let dragging = false;
+  let lastX = 0, lastY = 0;
+  let yaw = 0, pitch = 0;
+  let savedControlsEnabled = true;
+  const LOOK_CLAMP = {
+    upDeg:   10,   // how far you can look UP from horizon
+    downDeg: 10,   // how far you can look DOWN from horizon
+    leftDeg: 30,   // how far you can look LEFT from the angle at enable
+    rightDeg:1    // how far you can look RIGHT from the angle at enable
+  };
+  const MIN_FOV = 30, MAX_FOV = 70, FOV_STEP = 2;   // faux-zoom bounds
+  // internal state for clamping yaw relative to when look-mode was turned on
+  let yaw0 = 0;   // baseline yaw at enable
+
+
+  function pitchClampFromPolar() {
+    const up    = THREE.MathUtils.degToRad(LOOK_CLAMP.upDeg);
+    const down  = THREE.MathUtils.degToRad(LOOK_CLAMP.downDeg);
+    return { min: -down, max: up };
+  }
+  function clampYaw(y) {
+    const left  = THREE.MathUtils.degToRad(LOOK_CLAMP.leftDeg);
+    const right = THREE.MathUtils.degToRad(LOOK_CLAMP.rightDeg);
+    const min = yaw0 - left;
+    const max = yaw0 + right;
+    // keep yaw within [min, max], but still continuous (no wrap surprise)
+    if (y < min) return min;
+    if (y > max) return max;
+    return y;
+  }
+  function syncYawPitchFromCamera() {
+    const e = new THREE.Euler().copy(camera.rotation).reorder('YXZ');
+    yaw = e.y; pitch = e.x;
+    yaw0 = yaw;  // baseline for left/right clamp
+    const { min, max } = pitchClampFromPolar();
+    pitch = Math.max(min, Math.min(max, pitch));
+  }
+  function applyYawPitch() {
+    const e = new THREE.Euler(pitch, yaw, 0, 'YXZ');
+    camera.quaternion.setFromEuler(e);
+
+    // keep controls.target in front of camera to preserve zoom distance for later
+    const forward = new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion);
+    const dist = camera.position.distanceTo(controls.target) || 4;
+    controls.target.copy(camera.position).add(forward.multiplyScalar(dist));
+
+    controls.update();
+    renderOnce();
+  }
+  function onPointerDownLook(e) {
+    if (e.button !== 0) return;
+    dragging = true;
+    lastX = e.clientX; lastY = e.clientY;
+    e.stopPropagation(); e.preventDefault();
+  }
+  function onPointerMoveLook(e) {
+    if (!dragging) return;
+    const dx = e.clientX - lastX;
+    const dy = e.clientY - lastY;
+    lastX = e.clientX; lastY = e.clientY;
+
+    const ROT_SPEED = 0.0025;    // tune feel
+    yaw   -= dx * ROT_SPEED;
+    pitch -= dy * ROT_SPEED;
+
+    const { min, max } = pitchClampFromPolar();
+    pitch = Math.max(min, Math.min(max, pitch));
+    yaw = clampYaw(yaw);
+
+    applyYawPitch();
+    e.stopPropagation(); e.preventDefault();
+  }
+  function onPointerUpLook() { dragging = false; }
+  function setLookMode(on = true) {
+    if (on === lookMode) return;
+    lookMode = on;
+
+    if (on) {
+      savedControlsEnabled = controls.enabled;
+      controls.enabled = false;          // fully disable OrbitControls in this mode
+      controls.enablePan = false;        // keep pan off per your requirement
+      controls.enableZoom = false;       // keep dolly off while looking
+      renderer.domElement.style.touchAction = 'none';
+
+      syncYawPitchFromCamera();
+      applyYawPitch();
+
+      const el = renderer.domElement;
+      el.addEventListener('pointerdown', onPointerDownLook, { passive: false });
+      window.addEventListener('pointermove', onPointerMoveLook, { passive: false });
+      window.addEventListener('pointerup',   onPointerUpLook,   { passive: true  });
+    } else {
+      const el = renderer.domElement;
+      el.removeEventListener('pointerdown', onPointerDownLook);
+      window.removeEventListener('pointermove', onPointerMoveLook);
+      window.removeEventListener('pointerup',   onPointerUpLook);
+      dragging = false;
+
+      controls.enabled = savedControlsEnabled;
+      controls.enableZoom = true;        // restore your previous setting if needed
+      controls.update();
+      renderOnce();
+    }
+  }
+
 
   // ---Helpers & lighting
   function initKeyLight(kl, sc){
@@ -229,7 +338,7 @@ export function initViewer(containerId) {
   }
 
   // Handy: frame the camera on any object
-  function frameObject(object) {
+  function frameObject(object, nudge = 0) {
     const box = new THREE.Box3().setFromObject(object);
     const size = box.getSize(new THREE.Vector3()).length();
     const center = box.getCenter(new THREE.Vector3());
@@ -238,6 +347,12 @@ export function initViewer(containerId) {
     const distance = size * 0.3/ Math.tan(THREE.MathUtils.degToRad(camera.fov * 0.5));
     const dir = new THREE.Vector3(1, 0.1, 0.8).normalize();
     camera.position.copy(center).add(dir.multiplyScalar(distance));
+
+    const n = _toV3(nudge);//optional post-frame movement
+    if (n){
+      camera.position.add(n);
+      camera.target.add(n);
+    } 
 
     camera.near = Math.max(size / 100, 0.1);
     camera.far = Math.max(size * 10, 50);
@@ -340,6 +455,6 @@ export function initViewer(containerId) {
 
   return { renderer, scene, camera, controls, 
     renderOnce, frameObject, fitShadowToBackdrops, setAO,
-    addRingLight, removeRingLight, 
+    addRingLight, removeRingLight, setLookMode,
   };
 }

@@ -256,44 +256,72 @@ export function initModels(ctx) {
     root.parent?.remove(root);
   }
 
+  function uvIsDegenerate(attr) {
+    let uMin=Infinity, uMax=-Infinity, vMin=Infinity, vMax=-Infinity;
+    for (let i=0; i<attr.count; i++) {
+      const u = attr.getX(i), v = attr.getY(i);
+      if (u<uMin) uMin=u; if (u>uMax) uMax=u;
+      if (v<vMin) vMin=v; if (v>vMax) vMax=v;
+    }
+    return (uMax - uMin < 1e-6) || (vMax - vMin < 1e-6);
+  }
   // Create planar UVs when a geometry lacks them.
   // Strategy: project onto the two largest extents; the smallest extent is treated as the "normal".
   function ensureAutoUVs(root) {
-    const tmp = new THREE.Vector3(), min = new THREE.Vector3(), max = new THREE.Vector3();
-    root.traverse(obj => {
-      if (!obj.isMesh || !obj.geometry) return;
-      const g = obj.geometry;
-      if (g.attributes.uv) return;
+    const vA = new THREE.Vector3(), vB = new THREE.Vector3(), vC = new THREE.Vector3();
+    const n  = new THREE.Vector3();
+  root.traverse(obj => {
+    if (!obj.isMesh || !obj.geometry) return;
 
-      g.computeBoundingBox();
-      const bb = g.boundingBox;
-      min.copy(bb.min); max.copy(bb.max);
-      const size = tmp.subVectors(max, min);
+    let g = obj.geometry;
 
-      // choose projection plane: skip the smallest axis
-      // (thin in Y -> project XZ, thin in Z -> project XY, etc.)
-      let uIdx = 0, vIdx = 2; // default XZ
-      if (size.x <= size.y && size.x <= size.z) { uIdx = 1; vIdx = 2; } // XY
-      else if (size.y <= size.x && size.y <= size.z) { uIdx = 0; vIdx = 2; } // XZ
-      else { uIdx = 0; vIdx = 1; } // YZ
+    // Skip if healthy UVs already exist
+    if (g.attributes.uv && !uvIsDegenerate(g.attributes.uv)) return;
 
-      const pos = g.attributes.position;
-      const uv = new Float32Array(pos.count * 2);
-      const uMin = min.getComponent(uIdx), vMin = min.getComponent(vIdx);
-      const uSize = Math.max(1e-9, size.getComponent(uIdx));
-      const vSize = Math.max(1e-9, size.getComponent(vIdx));
+    // Work per-face → need non-indexed geometry
+    if (g.index) g = obj.geometry = g.toNonIndexed();
 
-      for (let i = 0; i < pos.count; i++) {
-        const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-        tmp.set(x, y, z);
-        const u = (tmp.getComponent(uIdx) - uMin) / uSize;
-        const v = (tmp.getComponent(vIdx) - vMin) / vSize;
-        uv[2*i+0] = u;
-        uv[2*i+1] = v;
+    g.computeBoundingBox();
+    const bb   = g.boundingBox;
+    const size = new THREE.Vector3().subVectors(bb.max, bb.min);
+
+    const pos  = g.attributes.position;
+    const uvs  = new Float32Array(pos.count * 2);
+
+    // helper to write UVs
+    const setUV = (i, u, v) => { uvs[2*i] = u; uvs[2*i+1] = v; };
+
+    // Per-face “best axis” (box) projection
+    for (let i = 0; i < pos.count; i += 3) {
+      vA.set(pos.getX(i+0), pos.getY(i+0), pos.getZ(i+0));
+      vB.set(pos.getX(i+1), pos.getY(i+1), pos.getZ(i+1));
+      vC.set(pos.getX(i+2), pos.getY(i+2), pos.getZ(i+2));
+
+      n.copy(vC).sub(vB).cross(vA.clone().sub(vB)).normalize();
+
+      // choose projection by dominant normal axis
+      const ax = Math.abs(n.x), ay = Math.abs(n.y), az = Math.abs(n.z);
+      let proj;
+      if (ax >= ay && ax >= az) {
+        // X-dominant → project to YZ
+        proj = (v) => [ (v.z - bb.min.z) / (size.z || 1), (v.y - bb.min.y) / (size.y || 1) ];
+      } else if (ay >= ax && ay >= az) {
+        // Y-dominant → project to XZ
+        proj = (v) => [ (v.x - bb.min.x) / (size.x || 1), (v.z - bb.min.z) / (size.z || 1) ];
+      } else {
+        // Z-dominant → project to XY
+        proj = (v) => [ (v.x - bb.min.x) / (size.x || 1), (v.y - bb.min.y) / (size.y || 1) ];
       }
-      g.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
-      g.attributes.uv.needsUpdate = true;
-    });
+
+      const uvA = proj(vA), uvB = proj(vB), uvC = proj(vC);
+      setUV(i+0, uvA[0], uvA[1]);
+      setUV(i+1, uvB[0], uvB[1]);
+      setUV(i+2, uvC[0], uvC[1]);
+    }
+
+    g.setAttribute("uv", new THREE.BufferAttribute(uvs, 2));
+    g.attributes.uv.needsUpdate = true;
+  });
   }
 
   // ---------- Slots (backdrop, part) ----------
@@ -426,7 +454,8 @@ export function initModels(ctx) {
       }
 
       if (slotName.startsWith("backdrop")) ctx.fitShadowToBackdrops?.({ mode: "fit", margin: 1.4 });
-      if (opts.frame ?? slot.shouldFrame()) ctx.frameObject(slot.model);
+      if (opts.frame ?? slot.shouldFrame()) ctx.frameObject(slot.model,[1,0.5,2]);
+      ctx.setLookMode();
       ctx.renderOnce();
     };
 
@@ -515,85 +544,85 @@ export function initModels(ctx) {
     return !!ensureSlot(slotName)?.model;
   }
 
-// === Pin a ring light to a loaded GLTF piece (models.js) =====================
-// pieceId must match the wrapper group you created per piece: wrapper.name = `piece:${pieceId}`
-function _findPiece(slotName, pieceId){
-  const slot = ensureSlot(slotName);
-  if(!slot || !slot.model) return null;
-  return slot.model.children.find(ch => ch.userData?.pieceId === pieceId) || null;
-}
-// Derive world-space center, normal and an outer radius from the ring mesh
-function _ringInfoFromPiece(pieceGroup){
-  // pick first Mesh under the group
-  let mesh=null; pieceGroup.traverse(o=>{ if(!mesh && o.isMesh && o.geometry) mesh=o; });
-  if(!mesh) return null;
+  // === Pin a ring light to a loaded GLTF piece (models.js) =====================
+  // pieceId must match the wrapper group you created per piece: wrapper.name = `piece:${pieceId}`
+  function _findPiece(slotName, pieceId){
+    const slot = ensureSlot(slotName);
+    if(!slot || !slot.model) return null;
+    return slot.model.children.find(ch => ch.userData?.pieceId === pieceId) || null;
+  }
+  // Derive world-space center, normal and an outer radius from the ring mesh
+  function _ringInfoFromPiece(pieceGroup){
+    // pick first Mesh under the group
+    let mesh=null; pieceGroup.traverse(o=>{ if(!mesh && o.isMesh && o.geometry) mesh=o; });
+    if(!mesh) return null;
 
-  // local bbox (in geometry space)
-  const g = mesh.geometry;
-  if(!g.boundingBox) g.computeBoundingBox();
-  const bb = g.boundingBox;
-  const centerLocal = bb.getCenter(new THREE.Vector3());
-  const sizeLocal   = bb.getSize(new THREE.Vector3());
+    // local bbox (in geometry space)
+    const g = mesh.geometry;
+    if(!g.boundingBox) g.computeBoundingBox();
+    const bb = g.boundingBox;
+    const centerLocal = bb.getCenter(new THREE.Vector3());
+    const sizeLocal   = bb.getSize(new THREE.Vector3());
 
-  // world scale of the mesh (handles nested GLTF transforms)
-  const s = new THREE.Vector3(); mesh.getWorldScale(s);
-  const sizeWorld = new THREE.Vector3(sizeLocal.x*Math.abs(s.x), sizeLocal.y*Math.abs(s.y), sizeLocal.z*Math.abs(s.z));
+    // world scale of the mesh (handles nested GLTF transforms)
+    const s = new THREE.Vector3(); mesh.getWorldScale(s);
+    const sizeWorld = new THREE.Vector3(sizeLocal.x*Math.abs(s.x), sizeLocal.y*Math.abs(s.y), sizeLocal.z*Math.abs(s.z));
 
-  // axis with smallest world extent is the ring's thickness → its normal
-  const ext = [sizeWorld.x, sizeWorld.y, sizeWorld.z];
-  const minIdx = ext[0] <= ext[1] && ext[0] <= ext[2] ? 0 : (ext[1] <= ext[2] ? 1 : 2);
-  const localAxis = [new THREE.Vector3(1,0,0), new THREE.Vector3(0,1,0), new THREE.Vector3(0,0,1)][minIdx];
+    // axis with smallest world extent is the ring's thickness → its normal
+    const ext = [sizeWorld.x, sizeWorld.y, sizeWorld.z];
+    const minIdx = ext[0] <= ext[1] && ext[0] <= ext[2] ? 0 : (ext[1] <= ext[2] ? 1 : 2);
+    const localAxis = [new THREE.Vector3(1,0,0), new THREE.Vector3(0,1,0), new THREE.Vector3(0,0,1)][minIdx];
 
-  const nrmMat = new THREE.Matrix3().getNormalMatrix(mesh.matrixWorld);
-  const normalWorld = localAxis.clone().applyMatrix3(nrmMat).normalize();
+    const nrmMat = new THREE.Matrix3().getNormalMatrix(mesh.matrixWorld);
+    const normalWorld = localAxis.clone().applyMatrix3(nrmMat).normalize();
 
-  // world center (transform local bbox center)
-  const centerWorld = mesh.localToWorld(centerLocal.clone());
+    // world center (transform local bbox center)
+    const centerWorld = mesh.localToWorld(centerLocal.clone());
 
-  // ring radius ≈ mean of the two larger half-extents
-  const other = [0,1,2].filter(i=>i!==minIdx);
-  const r = 0.25 * (ext[other[0]] + ext[other[1]]); // (halfA + halfB) == 0.25*(A+B)
+    // ring radius ≈ mean of the two larger half-extents
+    const other = [0,1,2].filter(i=>i!==minIdx);
+    const r = 0.25 * (ext[other[0]] + ext[other[1]]); // (halfA + halfB) == 0.25*(A+B)
 
-  return { center: centerWorld, normal: normalWorld, radius: r };
-}
-// Public: place a ring light & optional emissive proxy at the given piece
-function placeRingLightAtPiece(slotName, pieceId, {
-  radiusScale = 1.0,
-  count       = 9,
-  intensity   = 1,
-  distanceMul = 6,
-  type        = "point",  // "point" or "spot"
-  offsetMul   = 0.01,      // offset along normal to avoid z-fighting
-  castShadow = false
-} = {}){
-  const piece = _findPiece(slotName, pieceId);
-  if(!piece) return false;
+    return { center: centerWorld, normal: normalWorld, radius: r };
+  }
+  // Public: place a ring light & optional emissive proxy at the given piece
+  function placeRingLightAtPiece(slotName, pieceId, {
+    radiusScale = 1.0,
+    count       = 9,
+    intensity   = 1,
+    distanceMul = 6,
+    type        = "point",  // "point" or "spot"
+    offsetMul   = 0.01,      // offset along normal to avoid z-fighting
+    castShadow = false
+  } = {}){
+    const piece = _findPiece(slotName, pieceId);
+    if(!piece) return false;
 
-  const info = _ringInfoFromPiece(piece);
-  if(!info) return false;
+    const info = _ringInfoFromPiece(piece);
+    if(!info) return false;
 
-  // Push slightly "behind" the lens relative to camera, so transmission samples it
-  const cam = ctx.camera;
-  const toCam = cam.position.clone().sub(info.center);
-  const facing = Math.sign(info.normal.dot(toCam)) || 1;  // + → normal faces camera
-  const offset = info.normal.clone().multiplyScalar(offsetMul * info.radius * -facing);
-  const center = info.center.clone().add(offset);
+    // Push slightly "behind" the lens relative to camera, so transmission samples it
+    const cam = ctx.camera;
+    const toCam = cam.position.clone().sub(info.center);
+    const facing = Math.sign(info.normal.dot(toCam)) || 1;  // + → normal faces camera
+    const offset = info.normal.clone().multiplyScalar(offsetMul * info.radius * -facing);
+    const center = info.center.clone().add(offset);
 
-  // Lights
-  ctx.addRingLight({
-    center: center.toArray(),
-    normal: info.normal.toArray(),
-    radius: info.radius * radiusScale,
-    count, 
-    intensity, 
-    distance: info.radius * distanceMul, 
-    type, 
-    inward: true, 
-    castShadow
-  });
+    // Lights
+    ctx.addRingLight({
+      center: center.toArray(),
+      normal: info.normal.toArray(),
+      radius: info.radius * radiusScale,
+      count, 
+      intensity, 
+      distance: info.radius * distanceMul, 
+      type, 
+      inward: true, 
+      castShadow
+    });
 
-  return true;
-}
+    return true;
+  }
 
 
   // public API
