@@ -30,7 +30,7 @@ export function initViewer(containerId) {
   const camera = new THREE.PerspectiveCamera(
     40, container.clientWidth / container.clientHeight, 0.1, 80
   );
-  camera.position.set(2.8, 1.8, 3.2);
+  camera.position.set(2.2, 1.8, 3.2);
 
   // Postprocessing (SSAO)
   let composer = null, renderPass = null, ssaoPass = null;
@@ -80,8 +80,8 @@ export function initViewer(containerId) {
   let yaw = 0, pitch = 0;
   let savedControlsEnabled = true;
   const LOOK_CLAMP = {
-    upDeg:   10,   // how far you can look UP from horizon
-    downDeg: 10,   // how far you can look DOWN from horizon
+    upDeg:   15,   // how far you can look UP from horizon
+    downDeg: 5,   // how far you can look DOWN from horizon
     leftDeg: 30,   // how far you can look LEFT from the angle at enable
     rightDeg:1    // how far you can look RIGHT from the angle at enable
   };
@@ -183,7 +183,8 @@ export function initViewer(containerId) {
 
   // ---Helpers & lighting
   function initKeyLight(kl, sc){
-    kl.position.set(20, 20, 5);
+    //kl is the directional light object, sc is scene scale
+    kl.position.set(-20, 20, 5);
     kl.castShadow = true;
     kl.shadow.mapSize.set(2048, 2048);   // 1024..4096 depending on perf
     kl.shadow.bias = -1e-4;              // fight shadow acne

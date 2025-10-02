@@ -49,11 +49,6 @@ export const SWATCHES = {
       {id: "plastic_char",  name: "Charcoal",  color: "#444"},
     ],
   },
-  ceiling: {
-    any: [
-      {id: "plastic_wh",  name: "Pearl",  color: "#e8e5dc"}
-    ],
-  },
   surround: {
     any: [
       {id: "plastic_wh",  name: "Pearl",  color: "#e8e5dc"}
@@ -89,7 +84,7 @@ export function initUI(ctx, models, assets) {
   const controlSets = document.querySelectorAll(".control-set");
   function showSet(rawName){
     let name = String(rawName || "").toLowerCase();
-    if (name==="wall"||"desk"||"ceiling"||"surround") {
+    if (name==="wall"||"desk"||"surround") {
       name = "lobbyset";
     };
     controlSets.forEach(set => {
@@ -112,8 +107,8 @@ export function initUI(ctx, models, assets) {
   const sizeTouch    = $("sizeTouch"),    repTouch    = $("repTouch");
   const sizeTVal     = $("sizeTVal"),     repTVal     = $("repTVal");
   // LOBBY sliders
-  const depthLobby   = $("depthLobby"),   scaleLobby   = $("scaleLobby");
-  const depthLVal    = $("depthLVal"),    scaleLVal    = $("scaleLVal");
+  const rippling   = $("rippling"),   scaleLobby   = $("scaleLobby");
+  const ripplingVal    = $("ripplingVal"),    scaleLVal    = $("scaleLVal");
 
   // Readout formatters
   const fmt_in  = (v) => `${v}″`;
@@ -310,6 +305,7 @@ export function initUI(ctx, models, assets) {
 
   // ---------- Design options by Project ----------
   function populateDesignChoices(pVal) {
+    //see app.js for each project’s allowed designs
     const allowed = (assets.designsByProject || {})[pVal] || [];
     const current = String(design?.value || "").toLowerCase();
 
@@ -348,19 +344,15 @@ export function initUI(ctx, models, assets) {
         rep: Number(repTouch?.value)
       };
       case "wall": return {
-        depth: Number(depthLobby?.value),
+        depth: Number(rippling?.value),
         scale: Number(scaleLobby?.value)
       };
       case "desk": return {
-        depth: Number(depthLobby?.value),
-        scale: Number(scaleLobby?.value)
-      };
-      case "ceiling": return {
-        depth: Number(depthLobby?.value),
+        depth: Number(rippling?.value),
         scale: Number(scaleLobby?.value)
       };
       case "surround": return {
-        depth: Number(depthLobby?.value),
+        depth: Number(rippling?.value),
         scale: Number(scaleLobby?.value)
       };
       default: return {};
@@ -374,7 +366,6 @@ export function initUI(ctx, models, assets) {
       case "touch": return (vals.size|0) + "|" + (vals.rep|0);
       case "wall":
       case "desk":
-      case "ceiling":
       case "surround":
         return (vals.depth|0) + "|" + (vals.scale|0);
       default: return "";
@@ -452,7 +443,7 @@ export function initUI(ctx, models, assets) {
     if (sizeTouch && sizeTVal)     sizeTVal.textContent    = fmt(sizeTouch.value);
     if (repTouch && repTVal)     repTVal.textContent    = fmt(repTouch.value);
 
-    if (depthLobby && depthLVal)   depthLVal.textContent   = fmt(depthLobby.value);
+    if (rippling && ripplingVal)   ripplingVal.textContent   = fmt(rippling.value);
     if (scaleLobby && scaleLVal)   scaleLVal.textContent   = fmt_x(scaleLobby.value);
 
     if (updateModel) checkAndUpdateModels();
@@ -469,7 +460,7 @@ export function initUI(ctx, models, assets) {
     depthNoise, scaleNoise,
     densityBrush, softenBrush,
     sizeTouch, repTouch,
-    depthLobby, scaleLobby
+    rippling, scaleLobby
   ].filter(Boolean);
   sliders.forEach(s => {
     s.addEventListener("input", onSliderChange);   // live readouts / preview

@@ -454,7 +454,7 @@ export function initModels(ctx) {
       }
 
       if (slotName.startsWith("backdrop")) ctx.fitShadowToBackdrops?.({ mode: "fit", margin: 1.4 });
-      if (opts.frame ?? slot.shouldFrame()) ctx.frameObject(slot.model,[1,0.5,2]);
+      if (opts.frame ?? slot.shouldFrame()) ctx.frameObject(slot.model,[0.5,0.5,3]);
       ctx.setLookMode();
       ctx.renderOnce();
     };

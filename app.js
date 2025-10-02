@@ -36,7 +36,7 @@ const ASSETS = {
   designsByProject: {
     private: ["cloud", "noise", "brush"],
     office:  ["noise", "touch"],
-    lobby: ["wall", "desk", "ceiling", "surround"],
+    lobby: ["wall", "desk", "surround"],
   },
 
   // part mappings - use target:false to exclude from swatch changes
@@ -88,12 +88,18 @@ const ASSETS = {
     },
     lobby: {
       wall: {
-
+        "3|1":[{url: "src/wall3-1.gltf"}],
+        "3|2":[{url: "src/wall3-2.gltf"}],
+        "3|3":[{url: "src/wall3-3.gltf"}],
+        "3|4":[{url: "src/wall3-4.gltf"}],
+        "3|5":[{url: "src/wall3-5.gltf"}],
+        "2|1":[{url: "src/wall2-1.gltf"}],
+        "2|2":[{url: "src/wall2-2.gltf"}],
+        "2|3":[{url: "src/wall2-3.gltf"}],
+        "2|4":[{url: "src/wall2-4.gltf"}],
+        "2|5":[{url: "src/wall2-5.gltf"}],
       },
       desk: {
-
-      },
-      ceiling: {
 
       },
       surround: {
