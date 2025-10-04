@@ -17,7 +17,7 @@ export function buildMats(ctx){
       color: 0xe2dccb, metalness: 0.3, roughness: 0.5, envMapIntensity: 0.8
     }),
     plastic_char: new THREE.MeshPhysicalMaterial({ 
-      color: 0x666666, metalness: 0.4, roughness: 0.2, envMapIntensity: 0.6
+      color: 0x666666, metalness: 0.3, roughness: 0.4, envMapIntensity: 0.6
     }),
     golden: new THREE.MeshPhysicalMaterial({
       color: 0xa89051, metalness: 0.5, roughness:0.5, envMapIntensity:0.8

@@ -85,7 +85,7 @@ export function initViewer(containerId) {
     leftDeg: 30,   // how far you can look LEFT from the angle at enable
     rightDeg:1    // how far you can look RIGHT from the angle at enable
   };
-  const MIN_FOV = 30, MAX_FOV = 70, FOV_STEP = 2;   // faux-zoom bounds
+  const MIN_FOV = 35, MAX_FOV = 40, FOV_STEP = 1;   // faux-zoom bounds
   // internal state for clamping yaw relative to when look-mode was turned on
   let yaw0 = 0;   // baseline yaw at enable
 
@@ -148,6 +148,15 @@ export function initViewer(containerId) {
     e.stopPropagation(); e.preventDefault();
   }
   function onPointerUpLook() { dragging = false; }
+  function onWheelFov(e){
+    // zoom in = smaller FOV
+    const delta = (e.deltaY || 0) > 0 ? +FOV_STEP : -FOV_STEP;
+    camera.fov = THREE.MathUtils.clamp(camera.fov + delta, MIN_FOV, MAX_FOV);
+    camera.updateProjectionMatrix();
+    renderOnce();
+    e.preventDefault();
+    e.stopPropagation();
+  }
   function setLookMode(on = true) {
     if (on === lookMode) return;
     lookMode = on;
@@ -166,11 +175,13 @@ export function initViewer(containerId) {
       el.addEventListener('pointerdown', onPointerDownLook, { passive: false });
       window.addEventListener('pointermove', onPointerMoveLook, { passive: false });
       window.addEventListener('pointerup',   onPointerUpLook,   { passive: true  });
+      el.addEventListener('wheel', onWheelFov, { passive: false }); 
     } else {
       const el = renderer.domElement;
       el.removeEventListener('pointerdown', onPointerDownLook);
       window.removeEventListener('pointermove', onPointerMoveLook);
       window.removeEventListener('pointerup',   onPointerUpLook);
+      el.removeEventListener('wheel', onWheelFov);
       dragging = false;
 
       controls.enabled = savedControlsEnabled;
@@ -265,14 +276,11 @@ export function initViewer(containerId) {
   const pmrem = new THREE.PMREMGenerator(renderer);
   pmrem.compileEquirectangularShader();
   const HDR_URL = "src/royal_esplanade_1k.hdr";
-
-
   function useRoomEnv() {
   const roomTex = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
   scene.environment = roomTex;
   renderOnce();
   }
-
   new RGBELoader().setDataType(THREE.HalfFloatType).load(HDR_URL, (hdrTex) => {
       const envMap = pmrem.fromEquirectangular(hdrTex).texture;
       scene.environment = envMap;
@@ -450,8 +458,6 @@ export function initViewer(containerId) {
     key.shadow.needsUpdate = true;
     renderOnce();
   }
-
-
 
 
   return { renderer, scene, camera, controls, 
