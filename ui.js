@@ -40,18 +40,20 @@ export const SWATCHES = {
   wall: {
     any: [
       {id: "plastic_wh",  name: "Pearl",  color: "#e8e5dc"},
-      {id: "plastic_char",  name: "Charcoal",  color: "#444"},
+      {id: "heathergreen",  name: "Green",  color: "#52664f"},
+      { id: "golden",   name: "Deluxe",   color: "#a89051"},
     ],
   },
   desk: {
     any: [
-      {id: "plastic_wh",  name: "Pearl",  color: "#e8e5dc"},
-      {id: "plastic_char",  name: "Charcoal",  color: "#444"},
+      {id: "heathergreen",  name: "Green",  color: "#52664f"},
+      { id: "golden",   name: "Deluxe",   color: "#a89051"},
     ],
   },
   surround: {
     any: [
-      {id: "plastic_wh",  name: "Pearl",  color: "#e8e5dc"}
+      {id: "plastic_wh",  name: "Pearl",  color: "#e8e5dc"},
+      {id: "heathergreen",  name: "Green",  color: "#52664f"},
     ],
   }
 }
@@ -64,6 +66,40 @@ export function initUI(ctx, models, assets) {
   const project = $("project");
   const design  = $("design");
   const lightsBtn = $("lightsBtn");
+  const fullscreenBtn = document.getElementById("fullscreenBtn");
+  let isFullscreen = false;
+  function updateFullscreenBtn() {
+    fullscreenBtn.textContent = isFullscreen ? "exit fullscreen" : "fullscreen";
+    fullscreenBtn.setAttribute("aria-pressed", String(isFullscreen));
+  }
+  if (fullscreenBtn) {
+    fullscreenBtn.addEventListener("click", async () => {
+      const viewer = document.getElementById("viewer");
+      const wrapper = document.querySelector(".see-it");
+      if (!document.fullscreenElement) {
+        try {
+          await (wrapper?.requestFullscreen?.() || viewer.requestFullscreen());
+          isFullscreen = true;
+        } catch (err) {
+          console.warn("Fullscreen request failed:", err);
+          //await viewer.requestFullscreen();
+          //isFullscreen = true;
+        }
+      } else {
+        await document.exitFullscreen();
+        isFullscreen = false;
+      }
+      updateFullscreenBtn();
+    });
+
+    document.addEventListener("fullscreenchange", () => {
+      isFullscreen = !!document.fullscreenElement;
+      document.body.classList.toggle("fullscreen-active", isFullscreen);
+      updateFullscreenBtn();
+    });
+
+    updateFullscreenBtn();
+  }
   let lightsOn = false;
   function refreshLightsButton() {
     lightsBtn.textContent = lightsOn ? "lights: on" : "lights: off";

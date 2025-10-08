@@ -136,7 +136,7 @@ export function initViewer(containerId) {
     const dy = e.clientY - lastY;
     lastX = e.clientX; lastY = e.clientY;
 
-    const ROT_SPEED = 0.0025;    // tune feel
+    const ROT_SPEED = 0.001;    // tune feel
     yaw   -= dx * ROT_SPEED;
     pitch -= dy * ROT_SPEED;
 

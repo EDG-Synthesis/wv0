@@ -43,6 +43,9 @@ export function buildMats(ctx){
       envMapIntensity:0.8,
       side: THREE.DoubleSide,
     }),
+    heathergreen: new THREE.MeshPhysicalMaterial({
+      color: 0x799475, metalness: 0.1, roughness: 0.9, envMapIntensity: 1
+    }),
     // add more finishes here later (wood, marble, etc.)
   };
   // --- Texture helpers ---
